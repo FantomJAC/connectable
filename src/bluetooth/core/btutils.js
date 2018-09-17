@@ -296,6 +296,9 @@ class BluetoothAddress {
 		}
 		return isArrayEquals(this._array, target._array);
 	}
+	isValid() {
+		return !this._array.reduce((a, v) => a && (v == 0), true);
+	}
 }
 exports.BluetoothAddress = BluetoothAddress;
 

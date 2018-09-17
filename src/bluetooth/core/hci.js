@@ -149,12 +149,14 @@ class Context {
 		}).then(response => {
 			return this._commands.informational.readLocalVersionInformation(this);
 		}).then(response => {
-			return this._commands.controller.writeLEHostSupport(0x01, 0x00, this);
-		}).then(response => {
 			return this._commands.informational.readBDAddr();
 		}).then(response => {
 			this._publicAddress = BluetoothAddress.getByAddress(response.getByteArray(6), false);
-			logger.info("publicAddress=" + this._publicAddress.toString());
+			if (this._publicAddress.isValid()) {
+				logger.info("publicAddress=" + this._publicAddress.toString());
+			} else {
+				logger.info("Invalid public address (LE Only)");
+			}
 			return this._commands.le.readBufferSize();
 		}).then(response => {
 			let linkCtx = this._linkMgr.getLinkContext(true);
@@ -162,23 +164,30 @@ class Context {
 			linkCtx.maxPackets = response.getInt8();
 			logger.debug("maxDataLength(LE)=" + linkCtx.maxDataLength);
 			logger.debug("maxPackets(LE)=" + linkCtx.maxPackets);
-			return this._commands.informational.readBufferSize();
-		}).then(response => {
-			let linkCtx = this._linkMgr.getLinkContext(false);
-			linkCtx.maxDataLength = response.getInt16();
-			response.skip(1);
-			linkCtx.maxPackets = response.getInt16();
-			logger.debug("maxDataLength(ACL)=" + linkCtx.maxDataLength);
-			logger.debug("maxPackets(ACL)=" + linkCtx.maxPackets);
-			let linkCtxLE = this._linkMgr.getLinkContext(true);
-			if (linkCtxLE.maxDataLength == 0 || linkCtxLE.maxPackets == 0) {
-				logger.info("Use ACL Buffer Size");
-				linkCtxLE.maxDataLength = linkCtx.maxDataLength;
-				linkCtxLE.maxPackets = linkCtx.maxPackets;
+			if (this._publicAddress.isValid()) {
+				return this._commands.controller.writeLEHostSupport(0x01, 0x00, this).then(response => {
+					return this._commands.informational.readBufferSize();
+				}).then(response => {
+					let linkCtx = this._linkMgr.getLinkContext(false);
+					linkCtx.maxDataLength = response.getInt16();
+					response.skip(1);
+					linkCtx.maxPackets = response.getInt16();
+					logger.debug("maxDataLength(ACL)=" + linkCtx.maxDataLength);
+					logger.debug("maxPackets(ACL)=" + linkCtx.maxPackets);
+					let linkCtxLE = this._linkMgr.getLinkContext(true);
+					if (linkCtxLE.maxDataLength == 0 || linkCtxLE.maxPackets == 0) {
+						logger.info("Use ACL Buffer Size");
+						linkCtxLE.maxDataLength = linkCtx.maxDataLength;
+						linkCtxLE.maxPackets = linkCtx.maxPackets;
+					}
+					return Promise.resolve(null);
+				});
+			} else {
+				return Promise.resolve(null);
 			}
+		}).then(response => {
 			this.initComplete();
 		});
-
 	}
 	initComplete() {
 		this._initDone = true;

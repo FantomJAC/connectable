@@ -202,19 +202,19 @@ class Context {
 	setStaticAddress(address) {
 		if (address != null && (!address.isRandom() || !address.isIdentity())) {
 			logger.error("Not a static random address");
-			return;
+			return Promise.reject(null);
 		}
 		this._staticAddress = address;
 		if (this._privacyEnabled) {
-			return;
+			return Promise.resolve(null);
 		}
-		this._restoreIdentityAddress();
+		return this._restoreIdentityAddress();
 	}
 	_refreshLocalRPA() {
 		return SM.generatePrivateAddress(this._hci.encrypt, this._hci.random64, this._localIRK).then(rpa => {
 			logger.debug("RPA is generated:" + rpa.toString());
 			this._privateAddress = rpa;
-			return _updateRandomAddress(this._privateAddress);
+			return this._updateRandomAddress(this._privateAddress);
 		});
 	}
 	/**
@@ -465,6 +465,7 @@ class Context {
 		});
 	}
 	setWhiteList(addresses) {
+		// TODO: Promisify
 		this._hci.commands.le.clearWhiteList();
 		for (let address of addresses) {
 			this._hci.commands.le.addDeviceToWhiteList(address);

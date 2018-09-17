@@ -1,0 +1,23 @@
+{
+  "name": "connectable",
+  "version": "0.0.1",
+  "description": "Bluetooth LE stack for JavaScript",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/FantomJAC/connectable.git"
+  },
+  "keywords": [
+    "bluetooth",
+    "le",
+    "lowpan"
+  ],
+  "author": "Shotaro Uchida",
+  "license": "MIT",
+  "dependencies": {
+    "serialport": "^7.0.2"
+  }
+}

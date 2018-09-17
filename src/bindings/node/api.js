@@ -31,7 +31,7 @@
  */
 
 /* Mandatory utilities */
-const Utils = require("./common/utils");
+const Utils = require("../../common/utils");
 const Logger = Utils.Logger;
 
 Logger.setDefaultBinding(msg => console.log(msg));
